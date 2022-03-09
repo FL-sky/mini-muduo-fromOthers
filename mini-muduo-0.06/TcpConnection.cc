@@ -29,6 +29,11 @@ TcpConnection::TcpConnection(int sockfd, EventLoop* pLoop)
 
 TcpConnection::~TcpConnection()
 {}
+//3 因为响应请求的过程从TcpConnection移动到了EchoServer中，所以TcpConnection也做了相应更改，
+//在原来的onIn方法里不再直接调用write将数据传回，
+//而是在其中调用了其保存的IMuduoUser::onMessage方法将数据传递给了Muduo网络库的真正用户。
+//同时TcpConnection增加了一个send方法，这个方法包装了write操作，提供给网络库的用户来使用。
+//onMessage()方法的参数里会传递TcpConnection给用户，用户可以自行决定是否发送数据。
 
 void TcpConnection::onIn(int sockfd)
 {

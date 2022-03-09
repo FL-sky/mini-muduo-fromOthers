@@ -52,6 +52,13 @@ int Acceptor::createAndListen()
     }
     return _listenfd;
 }
+//2 Acceptor类的作用就是处理新连接，Acceptor里的Channel关注着用于listen的socket，一旦有连接到达，
+//就将连接accept下来（...这不废话嘛)。注意accept后还有个重要的步骤，就是回调一下TcpServer，
+//使得后者有机会创建TcpConnection，这里为什么不直接在Acceptor里新建TcpConnection而是将其放到TcpServer里，
+//我想在逻辑上新socket建立后就和之前用于listen的socket没有任何关系了，
+//TcpConnection和Acceptor分别关心不同的socket上的不同事件，这两个类是平行的关系，
+//如果前者创建后者，又牵扯生命周期的管理逻辑上不太合适，由TcpServer来掌握两者的生命周期更合适些。
+
 
 void Acceptor::OnIn(int socket)
 {

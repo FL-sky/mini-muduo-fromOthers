@@ -34,7 +34,7 @@ void Channel::handleEvent()
       _callBack->OnIn(_sockfd);
    }
 }
-
+//6 Channel添加了方法getEvents()和getSockfd(),使Epoll可以通过Channel获得必须的events和fd。
 void Channel::enableReading()
 {
     _events |= EPOLLIN;

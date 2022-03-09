@@ -4,7 +4,8 @@
 
 #include "Declear.h"
 /*
- 介绍一下Channel类，先看其声明，这里特别要注意_events和_revents，前者是要关注的事件，后者是发生的事件，不仔细看容易混淆。名字的来源是poll(2)的struct pollfd
+ 介绍一下Channel类，先看其声明，这里特别要注意_events和_revents，前者是要关注的事件，后者是发生的事件，不仔细看容易混淆。
+ 名字的来源是poll(2)的struct pollfd
  * */
 class Channel
 {

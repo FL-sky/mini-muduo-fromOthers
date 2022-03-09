@@ -11,7 +11,8 @@
 #include <string.h> //for bzero
 #include <iostream>
 using namespace std;
-
+//3 TcpConnection的作用很关键，在当前版本上只是用来简单处理socket的读写事件，
+//后续会将TcpConnection传递给库的用户，将读写权利转交给用户。
 TcpConnection::TcpConnection(int epollfd, int sockfd)
     :_epollfd(epollfd)
     ,_sockfd(sockfd)
