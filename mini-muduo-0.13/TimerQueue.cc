@@ -1,4 +1,4 @@
-//author voidccc
+// author voidccc
 
 #include <sys/timerfd.h>
 #include <inttypes.h>
@@ -18,6 +18,11 @@
 using namespace std;
 
 const unsigned long ULONGPTR_MAX = -1;
+
+// 3 TimerQueue
+
+// 改动不大，只是用Task包装了异步请求，这样保证所有关于Timer的操作都在IO线程进行。
+// 因为我们就是用timerfd来实现的定时器，而timerfd又是由epoll来监控的，所以这很好理解，对epoll监控的所有文件描述的操作都要放到IO线程。
 
 TimerQueue::TimerQueue(EventLoop *pLoop)
     : _timerfd(createTimerfd()), _pLoop(pLoop), _pTimerfdChannel(new Channel(_pLoop, _timerfd)) // Memory Leak !!!
@@ -79,7 +84,7 @@ void TimerQueue::doCancelTimer(Timer *pTimer)
 /// @return the process unique id of the timer
 long TimerQueue::addTimer(IRun0 *pRun, Timestamp when, double interval)
 {
-    Timer *pAddTimer = new Timer(when, pRun, interval); //Memory Leak !!!
+    Timer *pAddTimer = new Timer(when, pRun, interval); // Memory Leak !!!
     string str("addTimer");
     Task task(this, str, pAddTimer);
     _pLoop->queueInLoop(task);

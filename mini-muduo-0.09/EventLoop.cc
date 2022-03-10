@@ -1,4 +1,4 @@
-//author voidccc
+// author voidccc
 
 #include <sys/eventfd.h>
 
@@ -99,17 +99,22 @@ void EventLoop::doPendingFunctors()
         (*it).doRun();
     }
 }
-long EventLoop::runAt(Timestamp when, IRun *pRun)
+
+// 4 详细分析下Timer是怎么实现的，其实EventLoop里只有一个Timer文件描述符，
+// 当用户通过上面的3个接口向EventLoop添加的所有定时器，实际都工作在同一个timerfd上，这个是怎么做到的呢？
+// 我们来跟踪一下EventLoop::runAt()的实现
+long EventLoop::runAt(Timestamp when, IRun *pRun) //在指定的某个时刻调用函数
 {
+    // EventLoop::runAt(...)直接调用了TimerQueue::addTimer()
     return _pTimerQueue->addTimer(pRun, when, 0.0);
 }
 
-long EventLoop::runAfter(double delay, IRun *pRun)
+long EventLoop::runAfter(double delay, IRun *pRun) //等待一段时间后，调用函数
 {
     return _pTimerQueue->addTimer(pRun, Timestamp::nowAfter(delay), 0.0);
 }
 
-long EventLoop::runEvery(double interval, IRun *pRun)
+long EventLoop::runEvery(double interval, IRun *pRun) //以固定的时间间隔反复调用函数
 {
     return _pTimerQueue->addTimer(pRun, Timestamp::nowAfter(interval), interval);
 }

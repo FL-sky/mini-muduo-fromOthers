@@ -1,4 +1,4 @@
-//author voidccc
+// author voidccc
 
 #include <errno.h>
 #include <sys/socket.h>
@@ -56,8 +56,8 @@ void TcpConnection::handleRead()
     {
         _inBuf->append(line, readlength);
         // _pUser->onMessage(this, _inBuf);
-        outstr = "12345678";
-        for (int i = 0; i < 19; i++)
+        outstr = "0123456789";
+        for (int i = 0; i < 22; i++)
             outstr += outstr;
         outstr += "\n";
         printf("outstr.size=%d\n", outstr.length());
@@ -97,7 +97,7 @@ int TcpConnection::send(const string &message)
         else if (n == message.size())
             ::write(_sockfd, "FINISHED", sizeof("FINISHED"));
     }
-    ///https://blog.csdn.net/hhhlizhao/article/details/71552588
+    /// https://blog.csdn.net/hhhlizhao/article/details/71552588
     if (n < static_cast<int>(message.size())) ///什么时候会触发这条语句
     {                                         ///一次最大写入数据 小于 message.size
         *_outBuf += message.substr(n, message.size());

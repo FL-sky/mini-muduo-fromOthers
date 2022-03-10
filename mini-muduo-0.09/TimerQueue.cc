@@ -1,4 +1,4 @@
-//author voidccc
+// author voidccc
 
 #include <sys/timerfd.h>
 #include <inttypes.h>
@@ -28,6 +28,12 @@ TimerQueue::TimerQueue(EventLoop *pLoop)
 TimerQueue::~TimerQueue()
 {
     ::close(_timerfd);
+    /* int close(int __fd)
+Close the file descriptor FD.
+
+This function is a cancellation point and therefore not marked with
+__THROW.
+    */
 }
 
 void TimerQueue::doAddTimer(void *param)
@@ -39,6 +45,14 @@ void TimerQueue::doAddTimer(void *param)
         resetTimerfd(_timerfd, pTimer->getStamp());
     }
 }
+// 这里调用了两个方法，一个是insert(...)，一个是resetTimerfd(...)，
+// 在insert(...)里，程序将Timer插入到一个TimerList里，也就是一个std::set<std::pair<Timestamp, Timer*>>，看上去有点繁琐，
+// 其实是一个 时间->Timer 键值对的set，这个set的目的是存放所有未到期的定时器，
+// 每当timerfd到时，就从里面取出最近的一个定时器，然后修改timerfd把定时器修改成set里下一个最近的时间，
+// 这样实现了只使用一个timerfd来管理多个定时器的功能。
+// insert的返回值是个布尔型，意义是新加入的这个定时器是否否比整个set里所有定时器发生的还要早，
+// 如果是的话，就必须立刻修改timerfd，将timerfd的定时时间改成这个最近的定时器。
+// 如果新加入的定时器不是set里最先发生的定时器，则不用修改timerfd了。
 
 void TimerQueue::doCancelTimer(void *param)
 {
@@ -65,13 +79,16 @@ void TimerQueue::doCancelTimer(void *param)
 /// @return the process unique id of the timer
 long TimerQueue::addTimer(IRun *pRun, Timestamp when, double interval)
 {
-    Timer *pTimer = new Timer(when, pRun, interval); //Memory Leak !!!
+    Timer *pTimer = new Timer(when, pRun, interval); // Memory Leak !!!
     _pLoop->queueLoop(_addTimerWrapper, pTimer);
     // return (int)pTimer;
     return (long)pTimer;
 }
+// 这里面新建了一个Timer对象，然后就调用了EventLoop::queueLoop(...)，
+// 而queueLoop方法的作用就是异步执行(目前只有一个线程，所以只有异步执行的功能)。
+// 异步执行了TimerQueue::doAddTimer(...)方法。再来看看 doAddTimer 方法
 
-void TimerQueue::cancelTimer(long timerId)
+void TimerQueue::cancelTimer(long timerId) //关闭一个Timer
 {
     _pLoop->queueLoop(_cancelTimerWrapper, (void *)timerId);
 }
@@ -98,6 +115,8 @@ int TimerQueue::createTimerfd()
 {
     int timerfd = ::timerfd_create(CLOCK_MONOTONIC,
                                    TFD_NONBLOCK | TFD_CLOEXEC);
+    // int timerfd_create(clockid_t __clock_id, int __flags)
+    // Return file descriptor for new interval timer source.//创建一个定时器文件
     if (timerfd < 0)
     {
         cout << "failed in timerfd_create" << endl;
@@ -156,6 +175,12 @@ void TimerQueue::resetTimerfd(int timerfd, Timestamp stamp)
     bzero(&oldValue, sizeof(oldValue));
     newValue.it_value = howMuchTimeFromNow(stamp);
     int ret = ::timerfd_settime(timerfd, 0, &newValue, &oldValue);
+    /* int timerfd_settime(int __ufd, int __flags, const itimerspec *__utmr, itimerspec *__otmr)
+Set next expiration time of interval timer source UFD to UTMR. If
+FLAGS has the TFD_TIMER_ABSTIME flag set the timeout value is
+absolute. Optionally return the old expiration time in OTMR.
+    */
+    //设置新的超时时间，并开始计时
     if (ret)
     {
         cout << "timerfd_settime error" << endl;

@@ -1,4 +1,4 @@
-//author voidccc
+// author voidccc
 
 #include <errno.h>
 #include <sys/socket.h>
@@ -73,9 +73,9 @@ void TcpConnection::handleWrite()
             _outBuf.retrieve(n);
             if (_outBuf.readableBytes() == 0)
             {
-                _pSocketChannel->disableWriting(); //remove EPOLLOUT
+                _pSocketChannel->disableWriting(); // remove EPOLLOUT
                 Task task(this);
-                _pLoop->queueInLoop(task); //invoke onWriteComplate
+                _pLoop->queueInLoop(task); // invoke onWriteComplate
             }
         }
     }
@@ -94,6 +94,14 @@ void TcpConnection::send(const string &message)
     }
 }
 
+// 2 TcpConnection
+
+// 添加了一个sendInLoop方法，把原来send方法里的实现移动到了sendInLoop方法里，而send方法本身变成了一个外部接口的包装。
+// 根据调用send方法所在线程的不同，采取不同的策略，
+// 如果调用TcpConnection::send的线程刚好是IO线程，则立刻使用write将数据送出（当然是缓冲区为空的时候）。
+// 如果调用TcpConnection::send的线程是work线程(也就是后台处理线程)则只将要发送的信息通过Task对象丢到EventLoop的异步队列中，然后立刻返回。
+// EventLoop随后会在IO线程回调到TcpConnetion::sendInLoop方法，这样做的目的是保证网络IO相关操作只在IO线程进行。
+
 void TcpConnection::sendInLoop(const string &message)
 {
     int n = 0;
@@ -105,7 +113,7 @@ void TcpConnection::sendInLoop(const string &message)
         if (n == static_cast<int>(message.size()))
         {
             Task task(this);
-            _pLoop->queueInLoop(task); //invoke onWriteComplate
+            _pLoop->queueInLoop(task); // invoke onWriteComplate
         }
     }
 
@@ -114,7 +122,7 @@ void TcpConnection::sendInLoop(const string &message)
         _outBuf.append(message.substr(n, message.size()));
         if (!_pSocketChannel->isWriting())
         {
-            _pSocketChannel->enableWriting(); //add EPOLLOUT
+            _pSocketChannel->enableWriting(); // add EPOLLOUT
         }
     }
 }

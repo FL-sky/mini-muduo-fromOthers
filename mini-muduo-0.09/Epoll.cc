@@ -1,4 +1,4 @@
-//author voidccc
+// author voidccc
 
 #include <errno.h>
 
@@ -20,35 +20,36 @@ Epoll::Epoll()
 }
 
 Epoll::~Epoll()
-{}
-
-void Epoll::poll(vector<Channel*>* pChannels)
 {
-    int fds = ::epoll_wait(_epollfd, _events, MAX_EVENTS, -1);
-    if(fds == -1)
+}
+
+void Epoll::poll(vector<Channel *> *pChannels)
+{
+    int fds = ::epoll_wait(_epollfd, _events, MAX_EVENTS, -1); //在epoll上等待各种文件描述符事件
+    if (fds == -1)
     {
         cout << "epoll_wait error, errno:" << errno << endl;
         return;
     }
-    for(int i = 0; i < fds; i++)
+    for (int i = 0; i < fds; i++)
     {
-        Channel* pChannel = static_cast<Channel*>(_events[i].data.ptr);
+        Channel *pChannel = static_cast<Channel *>(_events[i].data.ptr);
         pChannel->setRevents(_events[i].events);
         pChannels->push_back(pChannel);
     }
 }
 
-void Epoll::update(Channel* pChannel)
+void Epoll::update(Channel *pChannel)
 {
     int index = pChannel->getIndex();
-    if(index == kNew)
+    if (index == kNew)
     {
         struct epoll_event ev;
         ev.data.ptr = pChannel;
         ev.events = pChannel->getEvents();
         int fd = pChannel->getSockfd();
         pChannel->setIndex(kAdded);
-        ::epoll_ctl(_epollfd, EPOLL_CTL_ADD, fd, &ev);
+        ::epoll_ctl(_epollfd, EPOLL_CTL_ADD, fd, &ev); //将timer文件描述符加入到epoll检测
     }
     else
     {
@@ -57,6 +58,5 @@ void Epoll::update(Channel* pChannel)
         ev.events = pChannel->getEvents();
         int fd = pChannel->getSockfd();
         ::epoll_ctl(_epollfd, EPOLL_CTL_MOD, fd, &ev);
-
     }
 }
