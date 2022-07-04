@@ -1,0 +1,36 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/fx/gitfiles/mini-muduo-fromOthers/mini-muduo-0.02/TcpServer.cc
+TcpServer.h
+/home/fx/gitfiles/mini-muduo-fromOthers/mini-muduo-0.02/TcpServer.h
+unistd.h
+-
+set
+-
+
+/home/fx/gitfiles/mini-muduo-fromOthers/mini-muduo-0.02/TcpServer.h
+sys/socket.h
+-
+sys/epoll.h
+-
+arpa/inet.h
+-
+fcntl.h
+-
+errno.h
+-
+string.h
+-
+iostream
+-
+
+/home/fx/gitfiles/mini-muduo-fromOthers/mini-muduo-0.02/main.cc
+TcpServer.h
+/home/fx/gitfiles/mini-muduo-fromOthers/mini-muduo-0.02/TcpServer.h
+

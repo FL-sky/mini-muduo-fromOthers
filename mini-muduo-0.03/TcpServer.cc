@@ -140,20 +140,37 @@ void TcpServer::start()
         }
         // 在epoll_wait()返回事件后，有两块逻辑要执行
         //
+        // 129
         for (int i = 0; i < fds; i++)
         {
             Channel *pChannel = static_cast<Channel *>(_events[i].data.ptr);
             pChannel->setRevents(_events[i].events);
+            /* https://blog.csdn.net/sjin_1314/article/details/8240511
+             * struct epoll_event {
+         __uint32_t events;      //* epoll event
+            epoll_data_t data;      //* User data
+        };
+             *
+             * 其中events表示感兴趣的事件和被触发的事件，可能的取值为：
+   EPOLLIN：表示对应的文件描述符可以读；
+   EPOLLOUT：表示对应的文件描述符可以写；
+   EPOLLPRI：表示对应的文件描述符有紧急的数可读；
+
+   EPOLLERR：表示对应的文件描述符发生错误；
+    EPOLLHUP：表示对应的文件描述符被挂断；
+   EPOLLET：    ET的epoll工作模式；
+             * */
             channels.push_back(pChannel);
-        }
+        } // 134
         //第一步129行到134行 ，遍历所有的事件，从其data字段中拿出和这个socket相关的Channel指针，
         // 并且将其_revents(注意和_events区别)字段填充好，最后将Channel插入到vector中
         //
+        // 136
         vector<Channel *>::iterator it;
         for (it = channels.begin(); it != channels.end(); ++it)
         {
             (*it)->handleEvent();
-        }
+        } // 140
         //第二步136行到140行，遍历vector，逐一调用其中的handleEvent方法。
         // handleEvent方法里会直接调用_callBack的OnIn方法，把事件送给注册好的回调进行处理。
         //

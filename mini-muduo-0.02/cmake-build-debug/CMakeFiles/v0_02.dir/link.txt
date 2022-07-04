@@ -1,0 +1,1 @@
+/usr/bin/c++  -g   CMakeFiles/v0_02.dir/main.cc.o CMakeFiles/v0_02.dir/TcpServer.cc.o  -o v0_02 
